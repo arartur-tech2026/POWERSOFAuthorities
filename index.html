@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный дашборд: Полномочия органов власти РФ</title>
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --surface-color: #ffffff;
+            --surface-secondary: #f8fafc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+            
+            /* Цвета сфер */
+            --color-economy: #10b981;
+            --color-social: #f59e0b;
+            --color-security: #ef4444;
+            --color-hr: #8b5cf6;
+            --color-law: #3b82f6;
+            --color-other: #64748b;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --surface-color: #1e293b;
+            --surface-secondary: #0f172a;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --accent-color: #3b82f6;
+            --accent-hover: #60a5fa;
+            --border-color: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            line-height: 1.5;
+            transition: var(--transition);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        /* Шапка */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            letter-spacing: -0.025em;
+        }
+
+        h1 svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--accent-color);
+        }
+
+        .theme-toggle {
+            background: var(--surface-color);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .theme-toggle svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Навигация (Органы власти) */
+        .tabs-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 1rem;
+            scrollbar-width: none;
+        }
+        .tabs-container::-webkit-scrollbar { display: none; }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            min-width: max-content;
+        }
+
+        .tab-btn {
+            background-color: var(--surface-color);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem 1.25rem;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn:hover {
+            border-color: var(--accent-color);
+            background-color: var(--surface-secondary);
+        }
+
+        .tab-btn.active {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .tab-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* Фильтры (Сферы ведения) */
+        .filters-wrapper {
+            background-color: var(--surface-color);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow);
+        }
+
+        .filters-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            font-weight: 700;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background-color: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            text-align: left;
+        }
+
+        .filter-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            border-color: var(--text-secondary);
+            background-color: var(--surface-secondary);
+        }
+
+        /* Специфичные цвета для активных фильтров */
+        .filter-btn.active[data-sphere="all"] { background-color: var(--text-primary); color: var(--bg-color); border-color: var(--text-primary); }
+        .filter-btn.active[data-sphere="economy"] { background-color: var(--color-economy); color: white; border-color: var(--color-economy); }
+        .filter-btn.active[data-sphere="social"] { background-color: var(--color-social); color: white; border-color: var(--color-social); }
+        .filter-btn.active[data-sphere="security"] { background-color: var(--color-security); color: white; border-color: var(--color-security); }
+        .filter-btn.active[data-sphere="hr"] { background-color: var(--color-hr); color: white; border-color: var(--color-hr); }
+        .filter-btn.active[data-sphere="law"] { background-color: var(--color-law); color: white; border-color: var(--color-law); }
+        .filter-btn.active[data-sphere="other"] { background-color: var(--color-other); color: white; border-color: var(--color-other); }
+
+        /* Сетка колонок */
+        .main-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: 1fr;
+            align-items: start;
+        }
+
+        @media (min-width: 768px) {
+            .main-grid.show-all { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1200px) {
+            .main-grid.show-all { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .body-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .column-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 0.75rem 1rem;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            text-align: center;
+            color: var(--accent-color);
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .column-header svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* Карточки */
+        .card {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--card-hover-shadow);
+        }
+
+        /* Цвета левой границы карточки в зависимости от сферы */
+        .card[data-sphere="economy"] { border-left-color: var(--color-economy); }
+        .card[data-sphere="social"] { border-left-color: var(--color-social); }
+        .card[data-sphere="security"] { border-left-color: var(--color-security); }
+        .card[data-sphere="hr"] { border-left-color: var(--color-hr); }
+        .card[data-sphere="law"] { border-left-color: var(--color-law); }
+        .card[data-sphere="other"] { border-left-color: var(--color-other); }
+
+        .card-icon {
+            flex-shrink: 0;
+            width: 20px;
+            height: 20px;
+            margin-top: 0.15rem;
+        }
+
+        .card[data-sphere="economy"] .card-icon { fill: var(--color-economy); }
+        .card[data-sphere="social"] .card-icon { fill: var(--color-social); }
+        .card[data-sphere="security"] .card-icon { fill: var(--color-security); }
+        .card[data-sphere="hr"] .card-icon { fill: var(--color-hr); }
+        .card[data-sphere="law"] .card-icon { fill: var(--color-law); }
+        .card[data-sphere="other"] .card-icon { fill: var(--color-other); }
+
+        .card-text {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            background-color: var(--surface-color);
+            border: 1px dashed var(--border-color);
+            border-radius: 12px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            header { align-items: flex-start; }
+            h1 { font-size: 1.25rem; align-items: flex-start; }
+            h1 svg { flex-shrink: 0; margin-top: 0.25rem; }
+            .theme-toggle { position: static; flex-shrink: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SVG Библиотека -->
+    <svg style="display: none;">
+        <defs>
+            <symbol id="icon-sun" viewBox="0 0 24 24"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18.75a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zM6.166 17.834a.75.75 0 00-1.06 1.06l1.59 1.591a.75.75 0 101.06-1.061l-1.59-1.59zM4.5 12a.75.75 0 01-.75.75H1.5a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM6.166 6.166a.75.75 0 001.06-1.06l-1.59-1.59a.75.75 0 00-1.061 1.06l1.59 1.59z" /></symbol>
+            <symbol id="icon-moon" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-gov" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M3 3a1 1 0 011-1h16a1 1 0 011 1v18a1 1 0 01-1 1H4a1 1 0 01-1-1V3zm5 4a1 1 0 100 2h8a1 1 0 100-2H8zm0 4a1 1 0 100 2h8a1 1 0 100-2H8zm0 4a1 1 0 100 2h5a1 1 0 100-2H8z" clip-rule="evenodd" /></symbol>
+            
+            <!-- Иконки сфер -->
+            <symbol id="icon-all" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M11.47 2.47a.75.75 0 011.06 0l4.5 4.5a.75.75 0 01-1.06 1.06l-3.22-3.22V16.5a.75.75 0 01-1.5 0V4.81L8.03 8.03a.75.75 0 01-1.06-1.06l4.5-4.5zM3 20.25a.75.75 0 01.75-.75h16.5a.75.75 0 010 1.5H3.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-economy" viewBox="0 0 24 24"><path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" /></symbol>
+            <symbol id="icon-social" viewBox="0 0 24 24"><path d="M11.488 21.75c-2.31 0-4.62-.27-6.86-.798A.75.75 0 014.2 20.16c-.364-.477-.55-1.067-.55-1.66 0-3.328 2.672-6.026 6-6.026h2.2c3.328 0 6 2.698 6 6.026 0 .593-.186 1.183-.55 1.66a.75.75 0 01-.428.792c-2.24.528-4.55.798-6.86.798zM8.888 10.75a4 4 0 100-8 4 4 0 000 8z" /></symbol>
+            <symbol id="icon-security" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M12.516 2.17a.75.75 0 00-1.032 0 11.209 11.209 0 01-7.877 3.08.75.75 0 00-.722.515A12.74 12.74 0 002.25 9.75c0 5.942 4.064 10.933 9.563 12.348a.749.749 0 00.374 0c5.499-1.415 9.563-6.406 9.563-12.348 0-1.39-.223-2.73-.635-3.985a.75.75 0 00-.722-.516l-.143.001c-2.996 0-5.717-1.17-7.734-3.08zm3.094 8.016a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 11.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-hr" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></symbol>
+            <symbol id="icon-law" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M10.5 3A1.5 1.5 0 009 4.5v1.442L4.672 8.7a1.5 1.5 0 00-.816 1.706l.75 4.5a1.5 1.5 0 001.477 1.254h.471l1.624 5.683c.11.383.46.657.859.657h5.926c.399 0 .749-.274.859-.657l1.624-5.683h.471a1.5 1.5 0 001.477-1.254l.75-4.5a1.5 1.5 0 00-.816-1.706L15 5.942V4.5A1.5 1.5 0 0013.5 3h-3zm-1.5 3v2.858l-3.87 2.128-.564-3.385L10.5 6zM15 6l-4.5 2.475v4.522l5.064-2.785L15 6zm-5.064 7.22l4.564 2.51V21h-3v-5.27l-1.564-.86z" clip-rule="evenodd" /></symbol>
+            <symbol id="icon-other" viewBox="0 0 24 24"><path fill-rule="evenodd" d="M4.5 12a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm6 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0zm6 0a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" clip-rule="evenodd" /></symbol>
+            
+            <!-- Иконки вкладок (Органы власти) -->
+            <symbol id="icon-tab-all" viewBox="0 0 24 24"><path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z"/></symbol>
+            <symbol id="icon-tab-gov" viewBox="0 0 24 24"><path d="M20 7h-4V5c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM10 5h4v2h-4V5zm10 15H4V9h16v11z"/></symbol>
+            <symbol id="icon-tab-duma" viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05.02.01.03.03.04.04 1.14.83 1.93 1.94 1.93 3.41V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></symbol>
+            <symbol id="icon-tab-sf" viewBox="0 0 24 24"><path d="M12 2L1 6v2h22V6L12 2zm0 2.18l5.27 1.82H6.73L12 4.18zM4 10h3v7H4v-7zm6 0h3v7h-3v-7zm6 0h3v7h-3v-7zM2 19h20v2H2v-2z"/></symbol>
+            <symbol id="icon-tab-pres" viewBox="0 0 24 24"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></symbol>
+        </defs>
+    </svg>
+
+    <div class="container">
+        <header>
+            <h1>
+                <svg><use href="#icon-gov"></use></svg>
+                Матрица полномочий органов власти РФ
+            </h1>
+            <button class="theme-toggle" id="theme-btn" aria-label="Переключить тему">
+                <svg id="theme-icon"><use href="#icon-moon"></use></svg>
+            </button>
+        </header>
+
+        <!-- Фильтры по сферам (Матрица) -->
+        <div class="filters-wrapper">
+            <div class="filters-title">Сферы ведения (Фильтр)</div>
+            <div class="filters">
+                <button class="filter-btn active" data-sphere="all">
+                    <svg><use href="#icon-all"></use></svg> Все полномочия
+                </button>
+                <button class="filter-btn" data-sphere="economy">
+                    <svg><use href="#icon-economy"></use></svg> Экономика и финансы
+                </button>
+                <button class="filter-btn" data-sphere="hr">
+                    <svg><use href="#icon-hr"></use></svg> Кадровые назначения
+                </button>
+                <button class="filter-btn" data-sphere="law">
+                    <svg><use href="#icon-law"></use></svg> Правотворчество
+                </button>
+                <button class="filter-btn" data-sphere="security">
+                    <svg><use href="#icon-security"></use></svg> Безопасность и внешняя политика
+                </button>
+                <button class="filter-btn" data-sphere="social">
+                    <svg><use href="#icon-social"></use></svg> Социальная сфера
+                </button>
+                <button class="filter-btn" data-sphere="other">
+                    <svg><use href="#icon-other"></use></svg> Иные полномочия
+                </button>
+            </div>
+        </div>
+
+        <!-- Навигация по органам власти -->
+        <nav class="tabs-container">
+            <div class="tabs">
+                <button class="tab-btn active" data-target="all">
+                    <svg><use href="#icon-tab-all"></use></svg> Все органы (Сравнение)
+                </button>
+                <button class="tab-btn" data-target="gov">
+                    <svg><use href="#icon-tab-gov"></use></svg> Правительство
+                </button>
+                <button class="tab-btn" data-target="duma">
+                    <svg><use href="#icon-tab-duma"></use></svg> Гос. Дума
+                </button>
+                <button class="tab-btn" data-target="sf">
+                    <svg><use href="#icon-tab-sf"></use></svg> Совет Федерации
+                </button>
+                <button class="tab-btn" data-target="pres">
+                    <svg><use href="#icon-tab-pres"></use></svg> Президент
+                </button>
+            </div>
+        </nav>
+
+        <main class="main-grid show-all" id="main-grid">
+            
+            <!-- ПРАВИТЕЛЬСТВО -->
+            <div class="body-column" id="col-gov">
+                <div class="column-header">Правительство</div>
+                <div class="empty-state hidden">В данной сфере полномочия не представлены</div>
+                
+                <!-- Экономика -->
+                <div class="card" data-sphere="economy"><svg class="card-icon"><use href="#icon-economy"></use></svg><div class="card-text">Разрабатывает и исполняет федеральный бюджет.</div></div>
+                <div class="card" data-sphere="economy"><svg class="card-icon"><use href="#icon-economy"></use></svg><div class="card-text">Обеспечивает проведение единой финансовой, кредитной и денежной политики.</div></div>
+                <div class="card" data-sphere="economy"><svg class="card-icon"><use href="#icon-economy"></use></svg><div class="card-text">Управляет федеральной собственностью.</div></div>
+                <div class="card" data-sphere="economy"><svg class="card-icon"><use href="#icon-economy"></use></svg><div class="card-text">Создает условия для развития предпринимательства и частной инициативы.</div></div>
+                <!-- Правотворчество и Иное -->
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Обеспечивает законность, права и свободы граждан.</div></div>
+                <div class="card" data-sphere="law"><svg class="card-icon"><use href="#icon-law"></use></svg><div class="card-text">Издает постановления и распоряжения, обязательные к исполнению на всей территории РФ.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Осуществляет иные полномочия, возложенные на него Конституцией, законами и указами.</div></div>
+                <!-- Социум -->
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Принимает меры по улучшению условий жизнедеятельности населения.</div></div>
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Осуществляет социальное партнерство в трудовых отношениях.</div></div>
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Реализует меры по поддержке гражданского общества и волонтерской деятельности.</div></div>
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Принимает меры по охране окружающей среды и ответственному отношению к животным.</div></div>
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Организует систему экологического образования.</div></div>
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Обеспечивает доступное и качественное здравоохранение.</div></div>
+                <div class="card" data-sphere="social"><svg class="card-icon"><use href="#icon-social"></use></svg><div class="card-text">Разрабатывает и реализует меры в области культуры и образования.</div></div>
+                <!-- Безопасность -->
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Принимает меры по обеспечению обороны и государственной безопасности.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Осуществляет охрану общественного порядка и борьбу с преступностью.</div></div>
+            </div>
+
+            <!-- ГОСУДАРСТВЕННАЯ ДУМА -->
+            <div class="body-column" id="col-duma">
+                <div class="column-header">Гос. Дума</div>
+                <div class="empty-state hidden">В данной сфере полномочия не представлены</div>
+
+                <!-- Кадры -->
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Утверждает кандидатуру Председателя Правительства РФ, предложенную Президентом.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Утверждает кандидатуры заместителей Председателя Правительства и федеральных министров.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает на должность и освобождает от должности Председателя Центрального банка РФ.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает заместителя Председателя Счетной палаты и половину состава аудиторов.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает и освобождает от должности Уполномоченного по правам человека.</div></div>
+                <!-- Правотворчество и Иное -->
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Заслушивает ежегодные отчеты Правительства РФ о его деятельности.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Заслушивает ежегодные отчеты Центрального банка РФ.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Осуществляет парламентский контроль, включая право парламентского запроса.</div></div>
+                <div class="card" data-sphere="law"><svg class="card-icon"><use href="#icon-law"></use></svg><div class="card-text">Принимает федеральные законы.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Решает вопрос о доверии или недоверии Правительству Российской Федерации.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Объявляет амнистию.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Выдвигает обвинения против Президента в целях отрешения его от должности.</div></div>
+                <!-- Экономика -->
+                <div class="card" data-sphere="economy"><svg class="card-icon"><use href="#icon-economy"></use></svg><div class="card-text">Рассматривает и принимает законопроекты по вопросам федерального бюджета, налогов, кредитов.</div></div>
+            </div>
+
+            <!-- СОВЕТ ФЕДЕРАЦИИ -->
+            <div class="body-column" id="col-sf">
+                <div class="column-header">Совет Федерации</div>
+                <div class="empty-state hidden">В данной сфере полномочия не представлены</div>
+
+                <!-- Правотворчество и Иное -->
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Утверждает изменения границ между субъектами Российской Федерации.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Назначает выборы Президента Российской Федерации.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Принимает окончательное решение об отрешении Президента от должности.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Заслушивает ежегодные доклады Генерального прокурора РФ.</div></div>
+                <div class="card" data-sphere="law"><svg class="card-icon"><use href="#icon-law"></use></svg><div class="card-text">Имеет право законодательной инициативы и вносит законопроекты в Гос. Думу.</div></div>
+                <div class="card" data-sphere="law"><svg class="card-icon"><use href="#icon-law"></use></svg><div class="card-text">Рассматривает принятые Государственной Думой федеральные законы и одобряет их либо отклоняет.</div></div>
+                <!-- Безопасность -->
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Утверждает указ Президента о введении военного положения.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Утверждает указ Президента о введении чрезвычайного положения.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Решает вопрос о возможности использования Вооруженных Сил РФ за пределами страны.</div></div>
+                <!-- Кадры -->
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает Председателя Конституционного и Верховного судов, их заместителей и судей.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Проводит консультации по кандидатурам на должность Генерального прокурора.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает Председателя Счетной палаты и половину состава аудиторов.</div></div>
+                <!-- Экономика -->
+                <div class="card" data-sphere="economy"><svg class="card-icon"><use href="#icon-economy"></use></svg><div class="card-text">Участвует в парламентском контроле за исполнением федерального бюджета через Счетную палату.</div></div>
+            </div>
+
+            <!-- ПРЕЗИДЕНТ -->
+            <div class="body-column" id="col-pres">
+                <div class="column-header">Президент</div>
+                <div class="empty-state hidden">В данной сфере полномочия не представлены</div>
+
+                <!-- Безопасность -->
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Руководит внешней политикой.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Ведет переговоры и подписывает международные договоры.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Принимает верительные и отзывные грамоты иностранных дипломатов.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Является Верховным Главнокомандующим Вооруженными Силами РФ.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Вводит военное положение при угрозе агрессии.</div></div>
+                <div class="card" data-sphere="security"><svg class="card-icon"><use href="#icon-security"></use></svg><div class="card-text">Вводит чрезвычайное положение на территории РФ в случае угрозы.</div></div>
+                <!-- Правотворчество и Иное -->
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Решает вопросы гражданства и политического убежища.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Награждает государственными наградами, присваивает почетные звания и осуществляет помилование.</div></div>
+                <div class="card" data-sphere="law"><svg class="card-icon"><use href="#icon-law"></use></svg><div class="card-text">Издает указы и распоряжения, обязательные для исполнения на всей территории РФ.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Определяет структуру федеральных органов исполнительной власти.</div></div>
+                <div class="card" data-sphere="law"><svg class="card-icon"><use href="#icon-law"></use></svg><div class="card-text">Вносит законопроекты в Гос. Думу и накладывает вето на принятые законы.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Назначает выборы в Гос. Думу и может ее распустить в установленных законом случаях.</div></div>
+                <div class="card" data-sphere="other"><svg class="card-icon"><use href="#icon-other"></use></svg><div class="card-text">Осуществляет иные полномочия, возложенные на него Конституцией.</div></div>
+                <!-- Кадры -->
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает Председателя Правительства РФ с одобрения Гос. Думы.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает заместителей Председателя Правительства и федеральных министров.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает руководителей органов по вопросам обороны и безопасности.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Формирует администрацию Президента.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Представляет кандидатуры судей высших судов в Совет Федерации.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает судей федеральных судов.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает Генерального прокурора и его заместителей.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Представляет в Гос. Думу кандидатуру Председателя ЦБ РФ.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает высшее командование Вооруженных Сил.</div></div>
+                <div class="card" data-sphere="hr"><svg class="card-icon"><use href="#icon-hr"></use></svg><div class="card-text">Назначает полномочных представителей Президента.</div></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            const filterBtns = document.querySelectorAll('.filter-btn');
+            const columns = document.querySelectorAll('.body-column');
+            const mainGrid = document.getElementById('main-grid');
+
+            // Текущее состояние
+            let currentTab = 'all';
+            let currentSphere = 'all';
+
+            // Функция обновления отображения
+            function updateDisplay() {
+                // Управляем сеткой (4 колонки или 1 колонка)
+                if (currentTab === 'all') {
+                    mainGrid.classList.add('show-all');
+                } else {
+                    mainGrid.classList.remove('show-all');
+                }
+
+                columns.forEach(col => {
+                    // Проверяем, должна ли показываться эта колонка
+                    const isTabMatch = currentTab === 'all' || col.id === `col-${currentTab}`;
+                    col.style.display = isTabMatch ? 'flex' : 'none';
+
+                    if (isTabMatch) {
+                        let visibleCardsCount = 0;
+                        const cards = col.querySelectorAll('.card');
+                        const emptyState = col.querySelector('.empty-state');
+
+                        // Фильтруем карточки внутри колонки
+                        cards.forEach(card => {
+                            const isSphereMatch = currentSphere === 'all' || card.dataset.sphere === currentSphere;
+                            if (isSphereMatch) {
+                                card.classList.remove('hidden');
+                                visibleCardsCount++;
+                            } else {
+                                card.classList.add('hidden');
+                            }
+                        });
+
+                        // Показываем сообщение, если нет карточек
+                        if (visibleCardsCount === 0) {
+                            emptyState.classList.remove('hidden');
+                        } else {
+                            emptyState.classList.add('hidden');
+                        }
+                    }
+                });
+            }
+
+            // Обработчики для вкладок (Органы власти)
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTab = btn.dataset.target;
+                    updateDisplay();
+                });
+            });
+
+            // Обработчики для фильтров (Сферы ведения)
+            filterBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    filterBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentSphere = btn.dataset.sphere;
+                    updateDisplay();
+                });
+            });
+
+            // Переключение темы (светлая/темная)
+            const themeBtn = document.getElementById('theme-btn');
+            const htmlElement = document.documentElement;
+            const themeIcon = document.getElementById('theme-icon');
+
+            themeBtn.addEventListener('click', () => {
+                const isLight = htmlElement.getAttribute('data-theme') === 'light';
+                const newTheme = isLight ? 'dark' : 'light';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                themeIcon.innerHTML = isLight ? '<use href="#icon-sun"></use>' : '<use href="#icon-moon"></use>';
+            });
+
+            // Инициализация
+            updateDisplay();
+        });
+    </script>
+</body>
+</html>
